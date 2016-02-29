@@ -9,6 +9,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 /**
@@ -16,13 +17,19 @@ import javafx.stage.Stage;
  * @author Agarimo
  */
 public class Main extends Application {
-    
+
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("Win.fxml"));
-        
+        Var.initVar();
+        Parent root = FXMLLoader.load(getClass().getResource("/robinson/view/Win.fxml"));
+
         Scene scene = new Scene(root);
         
+        Image icon = new Image(getClass().getResourceAsStream("/robinson/resources/robinsonPng.png"));
+        stage.getIcons().add(icon);
+        stage.setTitle("Lista Robinson 1.0");
+
+        stage.setResizable(false);
         stage.setScene(scene);
         stage.show();
     }
@@ -33,5 +40,5 @@ public class Main extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-    
+
 }
