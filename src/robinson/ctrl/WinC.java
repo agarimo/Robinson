@@ -35,6 +35,9 @@ public class WinC implements Initializable {
     ObservableList<Proveedor> proveedores;
 
     @FXML
+    private VBox rootPane;
+
+    @FXML
     private VBox mainPane;
 
     @FXML
@@ -123,8 +126,8 @@ public class WinC implements Initializable {
     @FXML
     void aceptarAdd(ActionEvent event) {
         Proveedor proveedor = (Proveedor) cbProveedor.getSelectionModel().getSelectedItem();
-        String cif = tfCif.getText();
-        String telefono = tfTelefono.getText();
+        String cif = tfCif.getText().toUpperCase().trim();
+        String telefono = tfTelefono.getText().toUpperCase().trim();
 
         if (validarCif(cif)) {
             if (validarTelefono(telefono)) {
@@ -139,13 +142,28 @@ public class WinC implements Initializable {
                 alert.showAndWait();
             }
         } else {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("ERROR");
-            alert.setHeaderText("ERROR EN CIF");
-            alert.setContentText("El cif introducido no es válido.");
+            String aux = calculaCif(cif);
 
-            alert.showAndWait();
+            if (aux != null) {
+                if (validarTelefono(telefono)) {
+                    insertItem(proveedor, aux, telefono);
+                    showMainPane(new ActionEvent());
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("ERROR");
+                    alert.setHeaderText("ERROR EN TELÉFONO");
+                    alert.setContentText("El teléfono contiene caracteres no válidos.");
 
+                    alert.showAndWait();
+                }
+            } else {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("ERROR");
+                alert.setHeaderText("ERROR EN CIF");
+                alert.setContentText("El cif introducido no es válido.");
+
+                alert.showAndWait();
+            }
         }
     }
 
@@ -193,13 +211,36 @@ public class WinC implements Initializable {
     }
 
     private boolean validarCif(String cif) {
+        if (cif.length() < 9) {
+            return false;
+        } else {
+            CalculaNif cn = new CalculaNif();
+            return cn.isvalido(cif);
+        }
+    }
+
+    private String calculaCif(String cif) {
+        String aux = cif;
+
         CalculaNif cn = new CalculaNif();
-        return cn.isvalido(cif);
+
+        if (cn.letrasCif.contains("" + aux.charAt(0))) {
+            if (aux.length() == 8) {
+                aux = cn.calcular(aux);
+            }
+        } else if (cn.letrasNie.contains("" + aux.charAt(0))) {
+            if (aux.length() <= 8) {
+                aux = cn.calcular(aux);
+            }
+        } else if (aux.length() <= 8) {
+            aux = cn.calcular(aux);
+        }
+
+        return aux;
     }
 
     private boolean validarTelefono(String telefono) {
         Regex rg = new Regex();
         return !rg.isBuscar("\\D", telefono);
     }
-
 }

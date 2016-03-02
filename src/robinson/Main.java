@@ -24,7 +24,7 @@ public class Main extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("/robinson/view/Win.fxml"));
 
         Scene scene = new Scene(root);
-        
+
         Image icon = new Image(getClass().getResourceAsStream("/robinson/resources/robinsonPng.png"));
         stage.getIcons().add(icon);
         stage.setTitle("Lista Robinson 1.0");
