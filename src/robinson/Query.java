@@ -8,13 +8,13 @@ import java.util.logging.Logger;
 import robinson.model.Entidad;
 import robinson.model.Proveedor;
 import robinson.model.Telefono;
-import util.Sql;
+import sql.Sql;
 
 /**
  *
  * @author Agarimo
  */
-public class Query extends util.Query{
+public class Query extends sql.Query{
     
     public static Entidad getEntidad(String query) {
         Entidad aux = null;

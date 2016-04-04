@@ -21,17 +21,18 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         Var.initVar();
+        Var.stage=stage;
         Parent root = FXMLLoader.load(getClass().getResource("/robinson/view/Win.fxml"));
 
         Scene scene = new Scene(root);
 
         Image icon = new Image(getClass().getResourceAsStream("/robinson/resources/robinsonPng.png"));
-        stage.getIcons().add(icon);
-        stage.setTitle("Lista Robinson 1.0");
+        Var.stage.getIcons().add(icon);
+        Var.stage.setTitle("Lista Robinson 1.0");
 
-        stage.setResizable(false);
-        stage.setScene(scene);
-        stage.show();
+        Var.stage.setResizable(false);
+        Var.stage.setScene(scene);
+        Var.stage.show();
     }
 
     /**

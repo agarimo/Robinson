@@ -25,7 +25,8 @@ package robinson;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import util.Conexion;
+import javafx.stage.Stage;
+import sql.Conexion;
 
 /**
  *
@@ -33,6 +34,7 @@ import util.Conexion;
  */
 public class Var {
 
+    public static Stage stage;
     public static Conexion con;
     public static String dbName = "robinson";
 

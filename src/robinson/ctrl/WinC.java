@@ -2,6 +2,7 @@ package robinson.ctrl;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
+import java.io.File;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ResourceBundle;
@@ -15,8 +16,11 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import robinson.Query;
 import robinson.Var;
 import robinson.model.Entidad;
@@ -24,7 +28,7 @@ import robinson.model.Proveedor;
 import robinson.model.Telefono;
 import util.CalculaNif;
 import util.Regex;
-import util.Sql;
+import sql.Sql;
 
 /**
  *
@@ -33,6 +37,8 @@ import util.Sql;
 public class WinC implements Initializable {
 
     ObservableList<Proveedor> proveedores;
+    FileChooser fileChooser;
+    File importFile;
 
     @FXML
     private VBox rootPane;
@@ -42,12 +48,18 @@ public class WinC implements Initializable {
 
     @FXML
     private VBox addPane;
+    
+    @FXML
+    private VBox importPane;
 
     @FXML
     private VBox viewPane;
 
     @FXML
     private Button btAgregar;
+
+    @FXML
+    private Button btImportar;
 
     @FXML
     private Button btConsultar;
@@ -66,17 +78,38 @@ public class WinC implements Initializable {
 
     @FXML
     private Button btCancelarAdd;
+    
+    @FXML
+    private TextField tfFileImport;
+    
+    @FXML
+    private Button btSelectFile;
+    
+    @FXML
+    private Label lbProgreso;
+    
+    @FXML
+    private ProgressBar pgProgreso;
+    
+    @FXML
+    private Button btRunImport;
+    
+    @FXML
+    private Button volverImport;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         GlyphsDude.setIcon(btAgregar, MaterialDesignIcon.NOTE_PLUS, "40");
         GlyphsDude.setIcon(btConsultar, MaterialDesignIcon.FILE_FIND, "40");
-        mainPane.setVisible(true);
-        addPane.setVisible(false);
-        viewPane.setVisible(false);
+        GlyphsDude.setIcon(btImportar, MaterialDesignIcon.IMPORT, "40");
+        showPane(1);
         proveedores = FXCollections.observableArrayList();
         proveedores.addAll(Query.listaProveedor("SELECT * FROM " + Var.dbName + ".proveedor"));
         cbProveedor.setItems(proveedores);
+        fileChooser = new FileChooser();
+        fileChooser.setTitle("Seleccione el archivo");
+        fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+        btRunImport.setDisable(true);
     }
 
     private void showPane(int aux) {
@@ -85,18 +118,28 @@ public class WinC implements Initializable {
                 mainPane.setVisible(true);
                 addPane.setVisible(false);
                 viewPane.setVisible(false);
+                importPane.setVisible(false);
                 break;
 
             case 2:
                 mainPane.setVisible(false);
                 addPane.setVisible(true);
                 viewPane.setVisible(false);
+                importPane.setVisible(false);
                 break;
 
             case 3:
                 mainPane.setVisible(false);
                 addPane.setVisible(false);
                 viewPane.setVisible(true);
+                importPane.setVisible(false);
+                break;
+                
+            case 4:
+                mainPane.setVisible(false);
+                addPane.setVisible(false);
+                viewPane.setVisible(false);
+                importPane.setVisible(true);
                 break;
         }
     }
@@ -116,6 +159,34 @@ public class WinC implements Initializable {
     void agregarRegistro(ActionEvent event) {
         cleanView();
         showPane(2);
+    }
+
+    @FXML
+    void importarArchivo(ActionEvent event) {
+        showPane(4);
+        
+    }
+    
+    @FXML
+    void selectFile (ActionEvent event){
+        File file = fileChooser.showOpenDialog(Var.stage);
+        if (file != null) {
+            importFile = file;
+            tfFileImport.setText(importFile.getAbsolutePath());
+            btRunImport.setDisable(false);
+        }
+    }
+    
+    @FXML
+    void runImport(ActionEvent event){
+        btRunImport.setDisable(true);
+    }
+    
+    @FXML
+    void volverImport(ActionEvent event){
+        tfFileImport.setText("");
+        btRunImport.setDisable(true);
+        showPane(1);
     }
 
     @FXML
@@ -180,6 +251,10 @@ public class WinC implements Initializable {
         telf.setIdEntidad(entidad.getId());
         telf.setTelefono(telefono);
         insertTelefono(telf);
+    }
+    
+    private void insertFile(File file){
+        
     }
 
     private Entidad insertEntidad(Entidad entidad) {
