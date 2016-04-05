@@ -2,15 +2,15 @@ package robinson.ctrl;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
+import files.LoadFile;
 import java.io.File;
 import java.net.URL;
-import java.sql.SQLException;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
@@ -21,14 +21,14 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import robinson.Query;
 import robinson.Var;
-import robinson.model.Entidad;
+import static robinson.Var.calculaCif;
+import static robinson.Var.validarCif;
+import static robinson.Var.validarTelefono;
+import static robinson.ctrl.Insert.insertItem;
 import robinson.model.Proveedor;
-import robinson.model.Telefono;
-import util.CalculaNif;
-import util.Regex;
-import sql.Sql;
 
 /**
  *
@@ -38,7 +38,7 @@ public class WinC implements Initializable {
 
     ObservableList<Proveedor> proveedores;
     FileChooser fileChooser;
-    File importFile;
+    LoadFile importFile;
 
     @FXML
     private VBox rootPane;
@@ -48,7 +48,7 @@ public class WinC implements Initializable {
 
     @FXML
     private VBox addPane;
-    
+
     @FXML
     private VBox importPane;
 
@@ -78,24 +78,27 @@ public class WinC implements Initializable {
 
     @FXML
     private Button btCancelarAdd;
-    
+
     @FXML
     private TextField tfFileImport;
-    
+
     @FXML
     private Button btSelectFile;
-    
+
     @FXML
     private Label lbProgreso;
-    
+
     @FXML
     private ProgressBar pgProgreso;
-    
+
     @FXML
     private Button btRunImport;
-    
+
     @FXML
     private Button volverImport;
+
+    @FXML
+    private Label lbInfo;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -107,9 +110,13 @@ public class WinC implements Initializable {
         proveedores.addAll(Query.listaProveedor("SELECT * FROM " + Var.dbName + ".proveedor"));
         cbProveedor.setItems(proveedores);
         fileChooser = new FileChooser();
+        ExtensionFilter ef = new ExtensionFilter("Archivos CSV (*.csv)", "*.csv");
+        fileChooser.getExtensionFilters().add(ef);
         fileChooser.setTitle("Seleccione el archivo");
         fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
         btRunImport.setDisable(true);
+        pgProgreso.setVisible(false);
+        lbProgreso.setVisible(false);
     }
 
     private void showPane(int aux) {
@@ -134,7 +141,7 @@ public class WinC implements Initializable {
                 viewPane.setVisible(true);
                 importPane.setVisible(false);
                 break;
-                
+
             case 4:
                 mainPane.setVisible(false);
                 addPane.setVisible(false);
@@ -164,27 +171,53 @@ public class WinC implements Initializable {
     @FXML
     void importarArchivo(ActionEvent event) {
         showPane(4);
-        
+        pgProgreso.setVisible(false);
+        lbProgreso.setVisible(false);
     }
-    
+
     @FXML
-    void selectFile (ActionEvent event){
+    void selectFile(ActionEvent event) {
         File file = fileChooser.showOpenDialog(Var.stage);
         if (file != null) {
-            importFile = file;
-            tfFileImport.setText(importFile.getAbsolutePath());
+            importFile = new LoadFile(file);
+            lbInfo.setText("Cargados " + importFile.getCount() + " registros");
+            tfFileImport.setText(file.getAbsolutePath());
             btRunImport.setDisable(false);
         }
     }
-    
+
     @FXML
-    void runImport(ActionEvent event){
+    void runImport(ActionEvent event) {
         btRunImport.setDisable(true);
+        importar();
     }
-    
+
+    private void importar() {
+        pgProgreso.setVisible(true);
+        lbProgreso.setVisible(true);
+        Import i = new Import(importFile);
+        pgProgreso.progressProperty().bind(i.progressProperty());
+        lbProgreso.textProperty().bind(i.messageProperty());
+
+        i.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
+                new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(WorkerStateEvent t) {
+                pgProgreso.setVisible(false);
+                lbProgreso.setVisible(false);
+                
+//                MyObject result = task.getValue();
+                // now do something with result
+            }
+        });
+
+        new Thread(i).start();
+    }
+
     @FXML
-    void volverImport(ActionEvent event){
+    void volverImport(ActionEvent event) {
         tfFileImport.setText("");
+        lbInfo.setText("");
         btRunImport.setDisable(true);
         showPane(1);
     }
@@ -202,7 +235,7 @@ public class WinC implements Initializable {
 
         if (validarCif(cif)) {
             if (validarTelefono(telefono)) {
-                insertItem(proveedor, cif, telefono);
+                Insert.insertItem(proveedor, cif, telefono);
                 showMainPane(new ActionEvent());
             } else {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -236,86 +269,5 @@ public class WinC implements Initializable {
                 alert.showAndWait();
             }
         }
-    }
-
-    private void insertItem(Proveedor proveedor, String cif, String telefono) {
-        Entidad entidad;
-        Telefono telf;
-
-        entidad = new Entidad();
-        entidad.setCif(cif);
-        entidad.setIdProveedor(proveedor.getId());
-        entidad = insertEntidad(entidad);
-
-        telf = new Telefono();
-        telf.setIdEntidad(entidad.getId());
-        telf.setTelefono(telefono);
-        insertTelefono(telf);
-    }
-    
-    private void insertFile(File file){
-        
-    }
-
-    private Entidad insertEntidad(Entidad entidad) {
-        Entidad aux = Query.getEntidad(entidad.SQLBuscar());
-
-        if (aux == null) {
-            try {
-                Sql bd = new Sql(Var.con);
-                bd.ejecutar(entidad.SQLCrear());
-                bd.close();
-
-                aux = Query.getEntidad(entidad.SQLBuscar());
-            } catch (SQLException ex) {
-                Logger.getLogger(WinC.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
-        return aux;
-    }
-
-    private void insertTelefono(Telefono telefono) {
-        try {
-            Sql bd = new Sql(Var.con);
-            bd.ejecutar(telefono.SQLCrear());
-            bd.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(WinC.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    private boolean validarCif(String cif) {
-        if (cif.length() < 9) {
-            return false;
-        } else {
-            CalculaNif cn = new CalculaNif();
-            return cn.isvalido(cif);
-        }
-    }
-
-    private String calculaCif(String cif) {
-        String aux = cif;
-
-        CalculaNif cn = new CalculaNif();
-
-        if (cn.letrasCif.contains("" + aux.charAt(0))) {
-            if (aux.length() == 8) {
-                aux = cn.calcular(aux);
-            }
-        } else if (cn.letrasNie.contains("" + aux.charAt(0))) {
-            if (aux.length() <= 8) {
-                aux = cn.calcular(aux);
-            }
-        } else if (aux.length() <= 8) {
-            aux = cn.calcular(aux);
-        }
-
-        return aux;
-    }
-
-    private boolean validarTelefono(String telefono) {
-        Regex rg = new Regex();
-        return !rg.isBuscar("\\D", telefono);
     }
 }

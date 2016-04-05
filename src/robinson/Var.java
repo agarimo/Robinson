@@ -27,6 +27,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.stage.Stage;
 import sql.Conexion;
+import util.CalculaNif;
+import util.Regex;
 
 /**
  *
@@ -53,8 +55,41 @@ public class Var {
         con.setNombre("robinson");
         con.setDireccion("192.168.6.20");
         con.setPuerto("3306");
-        con.setUsuario("admin");
-        con.setPass("IkuinenK@@m.s84");
+        con.setUsuario("robinson");
+        con.setPass("R@bins.n1984");
     }
- 
+    
+    public static String calculaCif(String cif) {
+        String aux = cif;
+
+        CalculaNif cn = new CalculaNif();
+
+        if (cn.letrasCif.contains("" + aux.charAt(0))) {
+            if (aux.length() == 8) {
+                aux = cn.calcular(aux);
+            }
+        } else if (cn.letrasNie.contains("" + aux.charAt(0))) {
+            if (aux.length() <= 8) {
+                aux = cn.calcular(aux);
+            }
+        } else if (aux.length() <= 8) {
+            aux = cn.calcular(aux);
+        }
+
+        return aux;
+    }
+    
+    public static boolean validarCif(String cif) {
+        if (cif.length() < 9) {
+            return false;
+        } else {
+            CalculaNif cn = new CalculaNif();
+            return cn.isvalido(cif);
+        }
+    }
+
+    public static boolean validarTelefono(String telefono) {
+        Regex rg = new Regex();
+        return !rg.isBuscar("\\D", telefono);
+    }
 }
