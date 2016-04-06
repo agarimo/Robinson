@@ -71,7 +71,7 @@ public class Query extends sql.Query{
             while (rs.next()) {
                 aux = new Telefono();
                 aux.setId(rs.getInt("id"));
-                aux.setIdEntidad(rs.getInt("id_enditad"));
+                aux.setIdEntidad(rs.getInt("id_entidad"));
                 aux.setTelefono(rs.getString("telefono"));
                 aux.setFechaEntrada(rs.getDate("fecha_entrada"));
             }

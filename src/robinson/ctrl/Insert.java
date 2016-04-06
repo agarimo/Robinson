@@ -15,7 +15,7 @@ import sql.Sql;
  * @author Agarimo
  */
 public class Insert {
-    
+
     public static void insertItem(Proveedor proveedor, String cif, String telefono) {
         Entidad entidad;
         Telefono telf;
@@ -50,12 +50,16 @@ public class Insert {
     }
 
     private static void insertTelefono(Telefono telefono) {
-        try {
-            Sql bd = new Sql(Var.con);
-            bd.ejecutar(telefono.SQLCrear());
-            bd.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(WinC.class.getName()).log(Level.SEVERE, null, ex);
+        Telefono aux = Query.getTelefono(telefono.SQLBuscar());
+
+        if (aux == null) {
+            try {
+                Sql bd = new Sql(Var.con);
+                bd.ejecutar(telefono.SQLCrear());
+                bd.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(WinC.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 }

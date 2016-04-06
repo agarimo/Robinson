@@ -22,22 +22,24 @@ public class Import extends Task {
 
     public Import(LoadFile lf) {
         this.lf = lf;
+        this.lf.eliminaCabecera();
         proveedores = new ArrayList();
         proveedores.addAll(Query.listaProveedor("SELECT * FROM " + Var.dbName + ".proveedor"));
     }
 
     @Override
     protected Object call() throws Exception {
-        this.updateMessage("Importando Fichero");
+        updateMessage("Importando Fichero");
         double pg= 1;
         double tl= lf.getCount();
         String aux;
         Iterator<String> it = lf.getLineas().iterator();
 
         while (it.hasNext()) {
+            updateMessage("Importando "+(int) pg+" de "+(int) tl);
             aux = it.next();
             split(aux);
-            this.updateProgress(pg, tl);
+            updateProgress(pg, tl);
             pg++;
         }
 
@@ -45,12 +47,10 @@ public class Import extends Task {
     }
 
     private void split(String linea) {
-        
         String[] split = linea.split(";");
 
         String cif = getCif(split[10]);
         String telefono1 = getTelefono(split[11]);
-//        String telefono2 = getTelefono(split[12]);
         Proveedor proveedor = getProveedor(split[32]);
         
         Insert.insertItem(proveedor, cif, telefono1);

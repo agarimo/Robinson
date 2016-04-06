@@ -205,6 +205,16 @@ public class WinC implements Initializable {
             public void handle(WorkerStateEvent t) {
                 pgProgreso.setVisible(false);
                 lbProgreso.setVisible(false);
+                lbInfo.setText("");
+                tfFileImport.setText("");
+                
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("INFORMACIÓN");
+                alert.setHeaderText("IMPORTACIÓN COMPLETADA");
+                alert.setContentText("Se ha completado correctamente la importación");
+                alert.showAndWait();
+                
+                showPane(1);
                 
 //                MyObject result = task.getValue();
                 // now do something with result

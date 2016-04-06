@@ -102,7 +102,7 @@
                         <Font name="System Bold" size="24.0" />
                      </font>
                   </Label>
-                  <HBox alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="200.0">
+                  <HBox alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="200.0" spacing="10.0">
                      <children>
                         <TextField fx:id="tfFileImport" prefHeight="30.0" HBox.hgrow="ALWAYS" />
                         <Button fx:id="btSelectFile" mnemonicParsing="false" onAction="#selectFile" prefHeight="30.0" prefWidth="30.0" text="..." />
