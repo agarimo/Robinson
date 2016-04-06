@@ -23,7 +23,7 @@ public class Main extends Application {
 
         Image icon = new Image(getClass().getResourceAsStream("/robinson/resources/robinsonPng.png"));
         Var.stage.getIcons().add(icon);
-        Var.stage.setTitle("Lista Robinson 1.0");
+        Var.stage.setTitle("Lista Robinson 1.1");
 
         Var.stage.setResizable(false);
         Var.stage.setScene(scene);
